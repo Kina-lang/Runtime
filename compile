@@ -1,0 +1,8 @@
+#!/bin/bash
+
+rm -r build/ 2> /dev/null
+mkdir -p build/
+mkdir -p build/obj/
+
+clang -c src/kina-runtime.c -o build/obj/kina-runtime.o
+ar rcs build/kina-runtime.a build/obj/*
