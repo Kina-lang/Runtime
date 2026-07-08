@@ -1,0 +1,5 @@
+#!/bin/bash
+mkdir -p ./build/xtensa-esp32-elf/obj/
+
+xtensa-esp32-elf-gcc -O3 -c ./src/kina-runtime.c -o ./build/xtensa-esp32-elf/obj/kina-runtime.o
+xtensa-esp32-elf-ar rcs ./build/xtensa-esp32-elf/kina-runtime.a ./build/xtensa-esp32-elf/obj/*
