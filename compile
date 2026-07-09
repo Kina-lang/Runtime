@@ -1,7 +1,4 @@
 #!/bin/bash
 
-rm -r build/ 2> /dev/null
-mkdir -p build/
-
 ./scripts/compile-x86_64-unknown-linux-gnu
 ./scripts/compile-xtensa-esp32-elf

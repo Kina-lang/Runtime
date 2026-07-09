@@ -1,5 +1,10 @@
 #!/bin/bash
-mkdir -p ./build/xtensa-esp32-elf/obj/
 
-xtensa-esp32-elf-gcc -O3 -c ./src/kina-runtime.c -o ./build/xtensa-esp32-elf/obj/kina-runtime.o
-xtensa-esp32-elf-ar rcs ./build/xtensa-esp32-elf/kina-runtime.a ./build/xtensa-esp32-elf/obj/*
+# Find the activate script name (~/.espressif/tools/activate_???.sh)
+activate_script=$(find ~/.espressif/tools -name "activate_*.sh" | head -1)
+
+echo "Activating ESP-IDF environment using: $activate_script"
+
+# We run inside bash -c so that $0 is "bash", bypassing the check in the ESP-IDF
+# activation script that restricts execution when the script itself is run.
+bash -c 'source "$1" && "$2" "$3"' bash "$activate_script" ./builder/src/index.ts xtensa-esp32-elf
