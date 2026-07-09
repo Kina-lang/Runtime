@@ -72,6 +72,9 @@ void kina_mem_retain(void *ptr) {
     return; // null pointer check
 
   KinaARCMemHeader *header = KINA_ARC_MEM_GET_HEADER(ptr);
+  if (header->ref_count < 0)
+    return; // Static memory object, do nothing
+
   header->ref_count++; // Increment reference count
 
   kina_debug_print("ARC MEM: Retained, new ref_count=%d, address=%p",
@@ -83,6 +86,9 @@ void kina_mem_release(void *ptr) {
     return; // null pointer check
 
   KinaARCMemHeader *header = KINA_ARC_MEM_GET_HEADER(ptr);
+  if (header->ref_count < 0)
+    return; // Static memory object, do nothing
+
   header->ref_count--; // Decrement reference count
 
   kina_debug_print("ARC MEM: Released, new ref_count=%d, address=%p",
