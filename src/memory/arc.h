@@ -5,5 +5,7 @@
 void *kina_mem_alloc(size_t data_size);
 void kina_mem_retain(void* ptr);
 void kina_mem_release(void* ptr);
+void kina_mem_free(void* ptr);
+void kina_mem_checkLeaks();
 
 #endif
