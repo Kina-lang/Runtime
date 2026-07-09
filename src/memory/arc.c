@@ -39,32 +39,27 @@ void kina_mem_free(void *ptr) {
     return; // null pointer check
 
   KinaARCMemHeader *header = KINA_ARC_MEM_GET_HEADER(ptr);
-  free(header); // Free the entire block including the header
+
+  // Remove from the linked list of allocated blocks first, while header is
+  // valid
+  if (kina_mem_alloc_blocks_head != NULL) {
+    if (kina_mem_alloc_blocks_head == header) {
+      kina_mem_alloc_blocks_head = header->next;
+    } else {
+      KinaARCMemHeader *current = kina_mem_alloc_blocks_head;
+
+      while (current->next != NULL && current->next != header) {
+        current = current->next;
+      }
+
+      if (current->next == header) {
+        current->next = header->next;
+      }
+    }
+  }
 
   kina_debug_print("ARC MEM: Freed memory at address=%p", (void *)header);
-
-  // Remove from the linked list of allocated blocks
-  if (kina_mem_alloc_blocks_head == NULL)
-    return; // List is empty
-
-  // If the head is the one to be removed
-  if (kina_mem_alloc_blocks_head == header) {
-    kina_mem_alloc_blocks_head = header->next; // Remove head
-    return;
-  }
-
-  KinaARCMemHeader *current = kina_mem_alloc_blocks_head;
-
-  // Traverse the list to find the header and remove it
-  while (current->next != NULL && current->next != header) {
-    current = current->next;
-  }
-
-  // If we found the header, remove it from the list
-  if (current->next == header) {
-    current->next =
-        header->next; // Bypass the header to remove it from the list
-  }
+  free(header); // Free the entire block including the header
 }
 
 void kina_mem_retain(void *ptr) {
