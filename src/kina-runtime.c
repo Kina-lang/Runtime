@@ -11,7 +11,8 @@ int main(int argc, char **argv) {
   kina_debug_print("Program finished with code: %d", exitCode);
 
   // Cleanup
-  kina_mem_checkLeaks(); // Check for memory leaks before exiting
+  if (kina_debug_isEnabled())
+    kina_mem_checkLeaks(); // Check for memory leaks before exiting
 
   return exitCode;
 }
