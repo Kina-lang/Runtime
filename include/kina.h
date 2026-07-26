@@ -12,6 +12,7 @@ struct KinaString {
 
 // Kina memory management functions (ARC)
 void* kina_mem_alloc(size_t size);
+void *kina_mem_alloc_global(size_t size);
 void kina_mem_retain(void* ptr);
 void kina_mem_release(void* ptr);
 void kina_mem_free(void* ptr);

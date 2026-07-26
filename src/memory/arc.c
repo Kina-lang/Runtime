@@ -1,9 +1,12 @@
 #include "../debug/debug.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 typedef struct KinaARCMemHeader {
   int ref_count;
+  bool is_global; // Flag to indicate if the memory is kept for the entire
+                  // program lifetime (is not freed/leaked)
   struct KinaARCMemHeader
       *next; // Field for linked list of allocated blocks (for debugging)
 } KinaARCMemHeader;
@@ -16,7 +19,7 @@ typedef struct KinaARCMemHeader {
 // Global linked list of allocated blocks (for debugging)
 static KinaARCMemHeader *kina_mem_alloc_blocks_head = NULL;
 
-void *kina_mem_alloc(size_t data_size) {
+void *kina_mem_alloc_impl(size_t data_size, bool is_global) {
   // malloc with extra space for the header
   KinaARCMemHeader *header =
       (KinaARCMemHeader *)malloc(sizeof(KinaARCMemHeader) + data_size);
@@ -24,14 +27,22 @@ void *kina_mem_alloc(size_t data_size) {
     return NULL; // Out of memory
 
   header->ref_count = 1;                     // Initial reference count
+  header->is_global = is_global;             // Set the global flag
   header->next = kina_mem_alloc_blocks_head; // Add to the head of the list
   kina_mem_alloc_blocks_head = header;
 
-  kina_debug_print("ARC MEM: Allocated %zu bytes, ref_count=%d, address=%p",
-                   data_size, header->ref_count, (void *)header);
+  kina_debug_print(
+      "ARC MEM: Allocated %zu bytes, ref_count=%d, address=%p, is_global=%d",
+      data_size, header->ref_count, (void *)header, header->is_global);
 
   // Return pointer to the data part, which is after the header
   return (void *)((char *)header + sizeof(KinaARCMemHeader));
+}
+
+void *kina_mem_alloc(size_t size) { return kina_mem_alloc_impl(size, false); }
+
+void *kina_mem_alloc_global(size_t size) {
+  return kina_mem_alloc_impl(size, true);
 }
 
 void kina_mem_free(void *ptr) {
@@ -58,7 +69,15 @@ void kina_mem_free(void *ptr) {
     }
   }
 
-  kina_debug_print("ARC MEM: Freed memory at address=%p", (void *)header);
+  if (header->is_global) {
+    kina_debug_print("ARC MEM: ATTEMPTED TO FREE GLOBAL MEMORY! Object at "
+                     "address=%p, skipping free.",
+                     (void *)header);
+    return; // Do not free global memory
+  }
+
+  kina_debug_print("ARC MEM: Freed memory at address=%p, is_global=%d",
+                   (void *)header, header->is_global);
   free(header); // Free the entire block including the header
 }
 
@@ -100,7 +119,7 @@ void kina_mem_checkLeaks() {
   int leaked = 0;
 
   while (current != NULL) {
-    if (current->ref_count > 0) {
+    if (current->ref_count > 0 && !current->is_global) {
       kina_debug_print(
           "ARC MEM: MEMORY LEAK DETECTED! Object at %p has ref_count %d",
           (void *)((char *)current + sizeof(KinaARCMemHeader)),
