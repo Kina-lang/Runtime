@@ -54,7 +54,11 @@ async function buildFile(filePath: string, buildDir: string) {
   const fileName = path.basename(filePath, ".c");
   const outputFilePath = path.join(buildDir, `${fileName}.o`);
 
-  const clangArgs = ["-c", filePath, "-o", outputFilePath];
+  const clangArgs: string[] = [];
+
+  if (!isXtensa) clangArgs.push("-target", targetName);
+
+  clangArgs.push("-c", filePath, "-o", outputFilePath);
 
   console.log(`Compiling ${filePath}...`);
   await run(ccCommand, clangArgs);

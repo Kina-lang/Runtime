@@ -1,4 +1,5 @@
 #!/bin/bash
 
 ./scripts/compile-x86_64-unknown-linux-gnu
+./scripts/compile-x86_64-w64-mingw32
 ./scripts/compile-xtensa-esp32-elf

@@ -1,0 +1,2 @@
+#!/bin/bash
+./builder/src/index.ts x86_64-w64-mingw32
